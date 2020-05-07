@@ -12,12 +12,12 @@ pragma solidity ^0.5.13;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
-import "./mediators/StakingMediator.sol";
+import "./mediators/BasicStakingMediator.sol";
 import "./traits/NumericIdCounter.sol";
-import "./interfaces/IYGovernanceHomeMediator.sol";
+import "./interfaces/IStakingHomeMediator.sol";
 
 
-contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
+contract StakingForeignMediator is BasicStakingMediator, NumericIdCounter {
   using SafeMath for uint256;
   using SafeCast for uint256;
 
@@ -77,13 +77,13 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
   }
 
   function unstake(uint256 _amount) external {
-    require(_balances[msg.sender] >= _amount, "YALLStakingMediator: unstake amount exceeds the balance");
+    require(_balances[msg.sender] >= _amount, "StakingForeignMediator: unstake amount exceeds the balance");
 
     _applyUnstake(msg.sender, _amount);
 
     uint256 boxId = _nextCounterId();
     uint64 canBeReleasedSince = (now + coolDownPeriodLength).toUint64();
-    require(canBeReleasedSince > now, "YALLStakingMediator: either overflow or 0 cooldown period");
+    require(canBeReleasedSince > now, "StakingForeignMediator: either overflow or 0 cooldown period");
 
     coolDownBoxes[boxId] = CoolDownBox({
       holder: msg.sender,
@@ -101,9 +101,9 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
   function releaseCoolDownBox(uint256 _boxId) external {
     CoolDownBox storage box = coolDownBoxes[_boxId];
 
-    require(now > box.canBeReleasedSince, "YALLStakingMediator: cannot be released yet");
-    require(box.holder == msg.sender, "YALLStakingMediator: only box holder allowed");
-    require(box.released == false, "YALLStakingMediator: the box has been already released");
+    require(now > box.canBeReleasedSince, "StakingForeignMediator: cannot be released yet");
+    require(box.holder == msg.sender, "StakingForeignMediator: only box holder allowed");
+    require(box.released == false, "StakingForeignMediator: the box has been already released");
 
     box.released = true;
 
@@ -147,7 +147,7 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
     uint256 _at,
     uint256 _amount
   ) internal {
-    bytes4 methodSelector = IYGovernanceHomeMediator(0).setCachedBalance.selector;
+    bytes4 methodSelector = IStakingHomeMediator(0).setCachedBalance.selector;
     bytes memory data = abi.encodeWithSelector(methodSelector, _delegate, _at, _amount);
 
     bytes32 dataHash = keccak256(data);
@@ -157,7 +157,7 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
   }
 
   function _setCoolDownPeriodLength(uint256 _coolDownPeriodLength) internal {
-    require(_coolDownPeriodLength > 0, "YALLStakingMediator: unstake amount exceeds the balance");
+    require(_coolDownPeriodLength > 0, "StakingForeignMediator: unstake amount exceeds the balance");
 
     coolDownPeriodLength = _coolDownPeriodLength;
   }

@@ -4,13 +4,13 @@ const { assert } = require('chai');
 const AMBMock = contract.fromArtifact('AMBMock');
 const ProxyAdmin = contract.fromArtifact('ProxyAdmin');
 const Proxy = contract.fromArtifact('AdminUpgradeabilityProxy');
-const YGovernanceToken = contract.fromArtifact('YGovernanceToken');
-const YGovernanceForeignMediator = contract.fromArtifact('YGovernanceForeignMediator');
-const YGovernanceHomeMediator = contract.fromArtifact('YGovernanceHomeMediator');
+const StakingToken = contract.fromArtifact('StakingToken');
+const StakingForeignMediator = contract.fromArtifact('StakingForeignMediator');
+const StakingHomeMediator = contract.fromArtifact('StakingHomeMediator');
 
 AMBMock.numberFormat = 'String';
-YGovernanceToken.numberFormat = 'String';
-YGovernanceForeignMediator.numberFormat = 'String';
+StakingToken.numberFormat = 'String';
+StakingForeignMediator.numberFormat = 'String';
 
 const {
   ether,
@@ -40,7 +40,7 @@ async function deployWithProxy(implContract, proxyAdminContract, ...args) {
   };
 }
 
-describe('YStaking Integration tests', () => {
+describe('StakingForeignMediator Behaviour tests', () => {
   const [alice, bob, charlie, mediatorOnTheOtherSide] = accounts;
 
   const coolDownPeriodLength = 3600;
@@ -54,12 +54,12 @@ describe('YStaking Integration tests', () => {
   beforeEach(async function() {
     bridge = await AMBMock.new();
     await bridge.setMaxGasPerTx(2000000);
-    stakingToken = await YGovernanceToken.new('My Staking Token', 'MST', 18, ether(250));
+    stakingToken = await StakingToken.new('My Staking Token', 'MST', 18, ether(250));
     // only for ABI sake
-    homeMediator = await YGovernanceHomeMediator.new();
+    homeMediator = await StakingHomeMediator.new();
     proxyAdmin = await ProxyAdmin.new();
     const res = await deployWithProxy(
-      YGovernanceForeignMediator,
+      StakingForeignMediator,
       proxyAdmin,
       // initialize() arguments
       bridge.address,
@@ -156,7 +156,7 @@ describe('YStaking Integration tests', () => {
 
     await assertRevert(
       foreignMediator.unstake(ether(21), { from: bob }),
-      'YALLStakingMediator: unstake amount exceeds the balance'
+      'StakingForeignMediator: unstake amount exceeds the balance'
     );
     res = await foreignMediator.unstake(ether(10), { from: bob });
     const step3 = await getResTimestamp(res);
@@ -189,28 +189,28 @@ describe('YStaking Integration tests', () => {
 
     await assertRevert(
       foreignMediator.releaseCoolDownBox(1, { from: alice }),
-      'YALLStakingMediator: cannot be released yet'
+      'StakingForeignMediator: cannot be released yet'
     );
 
     await increaseTime(coolDownPeriodLength - 100);
 
     await assertRevert(
       foreignMediator.releaseCoolDownBox(1, { from: alice }),
-      'YALLStakingMediator: cannot be released yet'
+      'StakingForeignMediator: cannot be released yet'
     );
 
     await increaseTime(150);
 
     await assertRevert(
       foreignMediator.releaseCoolDownBox(1, { from: bob }),
-      ' YALLStakingMediator: only box holder allowed'
+      ' StakingForeignMediator: only box holder allowed'
     );
 
     foreignMediator.releaseCoolDownBox(1, { from: alice });
 
     await assertRevert(
       foreignMediator.releaseCoolDownBox(1, { from: alice }),
-      'YALLStakingMediator: the box has been already released'
+      'StakingForeignMediator: the box has been already released'
     );
   });
 

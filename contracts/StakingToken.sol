@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 
 
-contract YGovernanceToken is ERC20, ERC20Detailed {
+contract StakingToken is ERC20, ERC20Detailed {
   constructor(
     string memory _tokenName,
     string memory _tokenSymbol,

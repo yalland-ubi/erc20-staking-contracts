@@ -1,5 +1,5 @@
 {
-  "name": "@yalland-ubi/ygovernance",
+  "name": "erc20-staking-contracts",
   "version": "1.0.0",
   "description": "Bootstrap for Truffle/Solidity projects",
   "directories": {
@@ -34,7 +34,7 @@
     "smart",
     "contracts"
   ],
-  "repository": "https://github.com/yalland-ubi/ygovernance",
+  "repository": "https://github.com/yalland-ubi/erc20-staking-contracts",
   "scripts": {
     "test": "mocha --exit --recursive test --timeout 10000",
     "compile": "truffle compile",
