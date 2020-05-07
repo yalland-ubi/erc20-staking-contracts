@@ -1,12 +1,7 @@
-# Solidity Bootstrap Project
+# ERC20 Staking Contracts
 
-https://github.com/galtproject/solidity-bootstrap
-
-## How to use it
-
-* Fork this repo
-* Remove `.git` folder and initialize a new github repo with `git init` to drop off this repo history
-* Update descriptions in files like `README.md` and `package.json`
+![CI](https://github.com/yalland-ubi/erc20-staking-contracts/workflows/CI/badge.svg)
+[![codecov](https://codecov.io/gh/yalland-ubi/erc20-staking-contracts/branch/master/graph/badge.svg)](https://codecov.io/gh/yalland-ubi/erc20-staking-contracts)
 
 ## Commands
 
@@ -19,12 +14,3 @@ https://github.com/galtproject/solidity-bootstrap
 * `make ganache` - run local pre-configured ganache
 
 For more information check out `Makefile`
-
-## Tests
-
-Includes test runner configuration for the following CI services:
-
-* GitHub Actions
-* GitLab CI
-* Travis CI
-
