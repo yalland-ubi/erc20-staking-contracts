@@ -16,7 +16,7 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "../traits/TimestampCheckpointable.sol";
 
 
-contract StakingMediator is Ownable, Initializable, AMBMediator, TimestampCheckpointable {
+contract BasicStakingMediator is Ownable, Initializable, AMBMediator, TimestampCheckpointable {
   event RequestFailedMessageFix(bytes32 indexed txHash);
 
   bytes32 internal _nonce;
@@ -34,7 +34,7 @@ contract StakingMediator is Ownable, Initializable, AMBMediator, TimestampCheckp
 
     oppositeChainId = _oppositeChainId;
 
-    setNonce(keccak256(abi.encodePacked(address(this))));
+    _setNonce(keccak256(abi.encodePacked(address(this))));
 
     _transferOwnership(_owner);
 

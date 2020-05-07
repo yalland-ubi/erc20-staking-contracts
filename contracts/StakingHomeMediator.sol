@@ -9,11 +9,16 @@
 
 pragma solidity ^0.5.13;
 
+import "./mediators/BasicStakingMediator.sol";
+import "./interfaces/IStakingHomeMediator.sol";
 
-contract IYGovernanceHomeMediator {
+
+contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
   function setCachedBalance(
     address _delegator,
     uint256 _timestamp,
     uint256 _balance
-  ) external;
+  ) external {
+    // TODO: implement logic
+  }
 }
