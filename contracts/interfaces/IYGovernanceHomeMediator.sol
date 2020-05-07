@@ -11,5 +11,9 @@ pragma solidity ^0.5.13;
 
 
 contract IYGovernanceHomeMediator {
-  function setCachedBalance(address _delegator, uint256 _timestamp, uint256 _balance) external;
+  function setCachedBalance(
+    address _delegator,
+    uint256 _timestamp,
+    uint256 _balance
+  ) external;
 }

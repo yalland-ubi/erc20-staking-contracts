@@ -4,5 +4,4 @@ import "@openzeppelin/upgrades/contracts/upgradeability/AdminUpgradeabilityProxy
 import "@openzeppelin/upgrades/contracts/upgradeability/ProxyAdmin.sol";
 
 
-contract Imports {
-}
+contract Imports {}

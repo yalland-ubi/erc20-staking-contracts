@@ -18,9 +18,16 @@ contract AMBMock {
     maxGasPerTx = _value;
   }
 
-  function executeMessageCall(address _contract, address _sender, bytes memory _data, bytes32 _txHash, uint256 _gas) public {
+  function executeMessageCall(
+    address _contract,
+    address _sender,
+    bytes memory _data,
+    bytes32 _txHash,
+    uint256 _gas
+  ) public {
     messageSender = _sender;
     transactionHash = _txHash;
+    // solhint-disable-next-line avoid-low-level-calls
     (bool status, bytes memory response) = _contract.call.gas(_gas)(_data);
     messageSender = address(0);
     transactionHash = bytes32(0);
@@ -35,7 +42,11 @@ contract AMBMock {
     }
   }
 
-  function requireToPassMessage(address _contract, bytes memory _data, uint256 _gas) public {
+  function requireToPassMessage(
+    address _contract,
+    bytes memory _data,
+    uint256 _gas
+  ) public {
     emit MockedEvent(abi.encodePacked(msg.sender, _contract, _gas, uint8(0x00), _data));
     emit MockedEventDetailed(msg.sender, _contract, _gas, _data);
   }

@@ -14,7 +14,11 @@ import "./interfaces/IYGovernanceHomeMediator.sol";
 
 
 contract YGovernanceHomeMediator is IYGovernanceHomeMediator, StakingMediator {
-  function setCachedBalance(address _delegator, uint256 _timestamp, uint256 _balance) external {
+  function setCachedBalance(
+    address _delegator,
+    uint256 _timestamp,
+    uint256 _balance
+  ) external {
     // TODO: implement logic
   }
 }

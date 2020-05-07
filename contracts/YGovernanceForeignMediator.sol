@@ -39,7 +39,7 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
   uint256 public coolDownPeriodLength;
 
   uint256 public totalSupply;
-  mapping(address => uint256) internal balances;
+  mapping(address => uint256) internal _balances;
   // ID => details
   mapping(uint256 => CoolDownBox) public coolDownBoxes;
 
@@ -51,20 +51,11 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
     uint256 _oppositeChainId,
     uint256 _coolDownPeriodLength,
     address _owner
-  )
-    external
-    initializer
-  {
+  ) external initializer {
     _setCoolDownPeriodLength(_coolDownPeriodLength);
     _setYSTToken(_stakingTokenContract);
 
-    _initialize(
-      _bridgeContract,
-      _mediatorContractOnOtherSide,
-      _requestGasLimit,
-      _oppositeChainId,
-      _owner
-    );
+    _initialize(_bridgeContract, _mediatorContractOnOtherSide, _requestGasLimit, _oppositeChainId, _owner);
   }
 
   // OWNER INTERFACE
@@ -86,7 +77,7 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
   }
 
   function unstake(uint256 _amount) external {
-    require(balances[msg.sender] >= _amount, "YALLStakingMediator: unstake amount exceeds the balance");
+    require(_balances[msg.sender] >= _amount, "YALLStakingMediator: unstake amount exceeds the balance");
 
     _applyUnstake(msg.sender, _amount);
 
@@ -124,11 +115,11 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
   // INTERNAL METHODS
 
   function _applyStake(address _delegate, uint256 _amount) internal {
-    uint256 balanceBefore = balances[_delegate];
+    uint256 balanceBefore = _balances[_delegate];
     uint256 balanceAfter = balanceBefore.add(_amount);
     uint256 totalSupplyAfter = totalSupply.add(_amount);
 
-    balances[_delegate] = balanceAfter;
+    _balances[_delegate] = balanceAfter;
     totalSupply = totalSupplyAfter;
 
     _updateValueAtNow(_cachedBalances[_delegate], balanceAfter);
@@ -138,11 +129,11 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
   }
 
   function _applyUnstake(address _delegate, uint256 _amount) internal {
-    uint256 balanceBefore = balances[_delegate];
+    uint256 balanceBefore = _balances[_delegate];
     uint256 balanceAfter = balanceBefore.sub(_amount);
     uint256 totalSupplyAfter = totalSupply.sub(_amount);
 
-    balances[_delegate] = balanceAfter;
+    _balances[_delegate] = balanceAfter;
     totalSupply = totalSupplyAfter;
 
     _updateValueAtNow(_cachedBalances[_delegate], balanceAfter);
@@ -151,12 +142,16 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
     emit Unstake(_delegate, now, _amount, balanceBefore, balanceAfter);
   }
 
-  function _postCachedBalance(address _delegate, uint256 _at, uint256 _amount) internal {
+  function _postCachedBalance(
+    address _delegate,
+    uint256 _at,
+    uint256 _amount
+  ) internal {
     bytes4 methodSelector = IYGovernanceHomeMediator(0).setCachedBalance.selector;
     bytes memory data = abi.encodeWithSelector(methodSelector, _delegate, _at, _amount);
 
     bytes32 dataHash = keccak256(data);
-    setNonce(dataHash);
+    _setNonce(dataHash);
 
     bridgeContract.requireToPassMessage(mediatorContractOnOtherSide, data, requestGasLimit);
   }
@@ -177,7 +172,7 @@ contract YGovernanceForeignMediator is StakingMediator, NumericIdCounter {
   // GETTERS
 
   function balanceOf(address _delegate) external view returns (uint256) {
-    return balances[_delegate];
+    return _balances[_delegate];
   }
 
   function balanceOfAt(address _delegate, uint256 _timestamp) external view returns (uint256) {

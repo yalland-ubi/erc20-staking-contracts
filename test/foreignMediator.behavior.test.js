@@ -84,9 +84,13 @@ describe('YStaking Integration tests', () => {
     assert.equal(await foreignMediator.totalSupply(), 0);
 
     // approve
-    await stakingToken.approve(foreignMediator.address, ether(30), { from: alice });
+    await stakingToken.approve(foreignMediator.address, ether(30), {
+      from: alice,
+    });
     await stakingToken.approve(foreignMediator.address, ether(20), { from: bob });
-    await stakingToken.approve(foreignMediator.address, ether(50), { from: charlie });
+    await stakingToken.approve(foreignMediator.address, ether(50), {
+      from: charlie,
+    });
 
     // stake
     await foreignMediator.stake(ether(10), { from: alice });
@@ -121,7 +125,9 @@ describe('YStaking Integration tests', () => {
     // step1 changes to (alice=30, bob=0, charlie=0, total=30)
     await increaseTime(10);
 
-    await stakingToken.approve(foreignMediator.address, ether(30), { from: alice });
+    await stakingToken.approve(foreignMediator.address, ether(30), {
+      from: alice,
+    });
     let res = await foreignMediator.stake(ether(30), { from: alice });
     const step1 = await getResTimestamp(res);
 
@@ -164,7 +170,9 @@ describe('YStaking Integration tests', () => {
   });
 
   it('should create cooldown box on unstake', async function() {
-    await stakingToken.approve(foreignMediator.address, ether(30), { from: alice });
+    await stakingToken.approve(foreignMediator.address, ether(30), {
+      from: alice,
+    });
     await foreignMediator.stake(ether(30), { from: alice });
 
     const aliceBalanceBefore = await stakingToken.balanceOf(alice);
@@ -207,7 +215,9 @@ describe('YStaking Integration tests', () => {
   });
 
   it('should notify AMB', async function() {
-    await stakingToken.approve(foreignMediator.address, ether(30), { from: alice });
+    await stakingToken.approve(foreignMediator.address, ether(30), {
+      from: alice,
+    });
     const res = await foreignMediator.stake(ether(30), { from: alice });
     const at = await getResTimestamp(res);
 

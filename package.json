@@ -40,7 +40,7 @@
     "compile": "truffle compile",
     "deploy": "truffle migrate --network local",
     "coverage": "SOLIDITY_COVERAGE=yes scripts/coverage.sh",
-    "format:js": "prettier --write \"./**/*.js\"",
+    "format:js": "eslint --fix .",
     "format:sol": "prettier --write \"contracts/**/*.sol\"",
     "lint:js": "eslint .",
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\""
