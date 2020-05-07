@@ -1,7 +1,7 @@
 # ERC20 Staking Contracts
 
 ![CI](https://github.com/yalland-ubi/erc20-staking-contracts/workflows/CI/badge.svg)
-[![codecov](https://codecov.io/gh/yalland-ubi/erc20-staking-contracts/branch/master/graph/badge.svg)](https://codecov.io/gh/yalland-ubi/erc20-staking-contracts)
+<a target="_blank" href="https://codecov.io/gh/yalland-ubi/erc20-staking-contracts">![codecov](https://codecov.io/gh/yalland-ubi/erc20-staking-contracts/branch/master/graph/badge.svg)</a>
 
 ## Commands
 
