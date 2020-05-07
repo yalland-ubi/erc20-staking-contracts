@@ -7,8 +7,10 @@
   },
   "devDependencies": {
     "@galtproject/eslint-config-galt": "github:galtproject/eslint-config-galt#1e45e18b5e6849f6a88036a151f62d60889e9396",
+    "@galtproject/solidity-test-chest": "https://github.com/galtproject/solidity-test-chest#5ebd982",
     "@openzeppelin/contracts": "2.5.1",
     "@openzeppelin/test-environment": "github:chebykin/openzeppelin-test-environment#2ae7a2a4b3238b7ab8009be99e833e6342944400",
+    "@openzeppelin/upgrades": "^2.8.0",
     "@truffle/debug-utils": "^4.1.1",
     "chai": "^4.2.0",
     "cli-table": "^0.3.1",
