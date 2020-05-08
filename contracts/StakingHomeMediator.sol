@@ -19,6 +19,6 @@ contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
     uint256 _timestamp,
     uint256 _balance
   ) external {
-    // TODO: implement logic
+    _updateValueAt(_cachedBalances[_delegator], _timestamp, _balance);
   }
 }

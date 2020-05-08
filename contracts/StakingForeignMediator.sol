@@ -174,12 +174,4 @@ contract StakingForeignMediator is BasicStakingMediator, NumericIdCounter {
   function balanceOf(address _delegate) external view returns (uint256) {
     return _balances[_delegate];
   }
-
-  function balanceOfAt(address _delegate, uint256 _timestamp) external view returns (uint256) {
-    return _getValueAt(_cachedBalances[_delegate], _timestamp);
-  }
-
-  function totalSupplyAt(uint256 _timestamp) external view returns (uint256) {
-    return _getValueAt(_cachedTotalSupply, _timestamp);
-  }
 }

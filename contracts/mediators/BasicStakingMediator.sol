@@ -68,4 +68,14 @@ contract BasicStakingMediator is Ownable, Initializable, AMBMediator, TimestampC
   function _setNonce(bytes32 _hash) internal {
     _nonce = _hash;
   }
+
+  // GETTERS
+
+  function balanceOfAt(address _delegate, uint256 _timestamp) external view returns (uint256) {
+    return _getValueAt(_cachedBalances[_delegate], _timestamp);
+  }
+
+  function totalSupplyAt(uint256 _timestamp) external view returns (uint256) {
+    return _getValueAt(_cachedTotalSupply, _timestamp);
+  }
 }

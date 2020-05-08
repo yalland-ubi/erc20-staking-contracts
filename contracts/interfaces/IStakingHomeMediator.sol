@@ -10,7 +10,7 @@
 pragma solidity ^0.5.13;
 
 
-contract IStakingHomeMediator {
+interface IStakingHomeMediator {
   function setCachedBalance(
     address _delegator,
     uint256 _timestamp,
