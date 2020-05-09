@@ -27,7 +27,7 @@ contract BasicStakingMediator is Ownable, Initializable, AMBMediator, TimestampC
     uint256 _requestGasLimit,
     uint256 _oppositeChainId,
     address _owner
-  ) internal returns (bool) {
+  ) internal initializer {
     _setBridgeContract(_bridgeContract);
     _setMediatorContractOnOtherSide(_mediatorContractOnOtherSide);
     _setRequestGasLimit(_requestGasLimit);
@@ -37,13 +37,7 @@ contract BasicStakingMediator is Ownable, Initializable, AMBMediator, TimestampC
     _setNonce(keccak256(abi.encodePacked(address(this))));
 
     _transferOwnership(_owner);
-
-    return true;
   }
-
-  // ABSTRACT METHODS
-
-  //  function fixFailedMessage(bytes32 _dataHash) external;
 
   // INFO GETTERS
 
@@ -60,12 +54,22 @@ contract BasicStakingMediator is Ownable, Initializable, AMBMediator, TimestampC
   }
 
   function getBridgeMode() external pure returns (bytes4 _data) {
-    return bytes4(keccak256(abi.encodePacked("yst-to-yst-amb")));
+    return bytes4(keccak256(abi.encodePacked("stake-to-stake-amb")));
   }
 
   // USER INTERFACE
 
   function _setNonce(bytes32 _hash) internal {
     _nonce = _hash;
+  }
+
+  // GETTERS
+
+  function balanceOfAt(address _delegate, uint256 _timestamp) public view returns (uint256) {
+    return _getValueAt(_cachedBalances[_delegate], _timestamp);
+  }
+
+  function totalSupplyAt(uint256 _timestamp) public view returns (uint256) {
+    return _getValueAt(_cachedTotalSupply, _timestamp);
   }
 }

@@ -19,14 +19,22 @@ contract TimestampCheckpointable {
   Checkpoint[] internal _cachedTotalSupply;
   mapping(address => Checkpoint[]) internal _cachedBalances;
 
-  function _updateValueAtNow(Checkpoint[] storage checkpoints, uint256 _value) internal {
-    if ((checkpoints.length == 0) || (checkpoints[checkpoints.length - 1].fromTimestamp < now)) {
-      Checkpoint storage newCheckPoint = checkpoints[checkpoints.length++];
-      newCheckPoint.fromTimestamp = uint128(now);
-      newCheckPoint.value = uint128(_value);
+  function _updateValueAtNow(Checkpoint[] storage __checkpoints, uint256 __value) internal {
+    _updateValueAt(__checkpoints, __value, now);
+  }
+
+  function _updateValueAt(
+    Checkpoint[] storage __checkpoints,
+    uint256 __value,
+    uint256 __timestamp
+  ) internal {
+    if ((__checkpoints.length == 0) || (__checkpoints[__checkpoints.length - 1].fromTimestamp < __timestamp)) {
+      Checkpoint storage newCheckPoint = __checkpoints[__checkpoints.length++];
+      newCheckPoint.fromTimestamp = uint128(__timestamp);
+      newCheckPoint.value = uint128(__value);
     } else {
-      Checkpoint storage oldCheckPoint = checkpoints[checkpoints.length - 1];
-      oldCheckPoint.value = uint128(_value);
+      Checkpoint storage oldCheckPoint = __checkpoints[__checkpoints.length - 1];
+      oldCheckPoint.value = uint128(__value);
     }
   }
 
