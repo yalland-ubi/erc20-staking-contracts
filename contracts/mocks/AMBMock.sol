@@ -60,9 +60,9 @@ contract AMBMock {
     emit MockedEvent(abi.encodePacked(msg.sender, _contract, _gas, uint8(0x00), _data));
     emit MockedEventDetailed(msg.sender, _contract, _gas, _data);
 
-    if (_contract == homeMediator) {
+    if (msg.sender == homeMediator) {
       executeMessageCall(_contract, msg.sender, _data, keccak256("stub"), _gas);
-    } else if (_contract == foreignMediator) {
+    } else if (msg.sender == foreignMediator) {
       executeMessageCall(_contract, msg.sender, _data, keccak256("stub"), _gas);
     }
   }

@@ -21,8 +21,24 @@ contract StakingForeignMediator is BasicStakingMediator, NumericIdCounter {
   using SafeMath for uint256;
   using SafeCast for uint256;
 
-  event Stake(address indexed delegate, uint256 at, uint256 amount, uint256 balanceBefore, uint256 balanceAfter);
-  event Unstake(address indexed delegate, uint256 at, uint256 amount, uint256 balanceBefore, uint256 balanceAfter);
+  event Stake(
+    address indexed delegate,
+    uint256 at,
+    uint256 amount,
+    uint256 balanceBefore,
+    uint256 balanceAfter,
+    uint256 balanceCacheSlot,
+    uint256 totalSupplyCacheSlot
+  );
+  event Unstake(
+    address indexed delegate,
+    uint256 at,
+    uint256 amount,
+    uint256 balanceBefore,
+    uint256 balanceAfter,
+    uint256 balanceCacheSlot,
+    uint256 totalSupplyCacheSlot
+  );
   event NewCoolDownBox(address indexed delegator, uint256 boxId, uint256 amount, uint64 canBeReleasedSince);
   event ReleaseCoolDownBox(address indexed delegator, uint256 boxId, uint256 amount, uint256 releasedAt);
   event SetYSTToken(address token);
@@ -73,7 +89,7 @@ contract StakingForeignMediator is BasicStakingMediator, NumericIdCounter {
     stakingToken.transferFrom(from, to, _amount);
 
     _applyStake(from, _amount);
-    _postCachedBalance(msg.sender, now, _amount);
+    _postCachedBalance(msg.sender, now);
   }
 
   function unstake(uint256 _amount) external {
@@ -95,7 +111,27 @@ contract StakingForeignMediator is BasicStakingMediator, NumericIdCounter {
 
     emit NewCoolDownBox(msg.sender, boxId, _amount, canBeReleasedSince);
 
-    _postCachedBalance(msg.sender, now, _amount);
+    _postCachedBalance(msg.sender, now);
+  }
+
+  function pushCachedBalance(
+    address __delegate,
+    uint256 __delegateCacheSlotIndex,
+    uint256 __totalSupplyCacheSlotIndex,
+    uint256 __at
+  ) external {
+    Checkpoint storage pushBalance = _cachedBalances[__delegate][__delegateCacheSlotIndex];
+    Checkpoint storage pushTotalSupply = _cachedTotalSupply[__totalSupplyCacheSlotIndex];
+
+    require(pushBalance.fromTimestamp == __at, "StakingForeignMediator: balance invalid timestamp");
+    require(pushTotalSupply.fromTimestamp == __at, "StakingForeignMediator: total supply invalid timestamp");
+
+    require(
+      pushBalance.fromTimestamp == pushTotalSupply.fromTimestamp,
+      "StakingForeignMediator: delegate and totalSupply timestamp don't match"
+    );
+
+    _postCachedBalance(__delegate, __at);
   }
 
   function releaseCoolDownBox(uint256 _boxId) external {
@@ -125,7 +161,15 @@ contract StakingForeignMediator is BasicStakingMediator, NumericIdCounter {
     _updateValueAtNow(_cachedBalances[_delegate], balanceAfter);
     _updateValueAtNow(_cachedTotalSupply, totalSupplyAfter);
 
-    emit Stake(_delegate, now, _amount, balanceBefore, balanceAfter);
+    emit Stake(
+      _delegate,
+      now,
+      _amount,
+      balanceBefore,
+      balanceAfter,
+      _cachedBalances[_delegate].length - 1,
+      _cachedTotalSupply.length - 1
+    );
   }
 
   function _applyUnstake(address _delegate, uint256 _amount) internal {
@@ -139,16 +183,23 @@ contract StakingForeignMediator is BasicStakingMediator, NumericIdCounter {
     _updateValueAtNow(_cachedBalances[_delegate], balanceAfter);
     _updateValueAtNow(_cachedTotalSupply, totalSupplyAfter);
 
-    emit Unstake(_delegate, now, _amount, balanceBefore, balanceAfter);
+    emit Unstake(
+      _delegate,
+      now,
+      _amount,
+      balanceBefore,
+      balanceAfter,
+      _cachedBalances[_delegate].length - 1,
+      _cachedTotalSupply.length - 1
+    );
   }
 
-  function _postCachedBalance(
-    address _delegate,
-    uint256 _at,
-    uint256 _amount
-  ) internal {
+  function _postCachedBalance(address __delegate, uint256 __at) internal {
     bytes4 methodSelector = IStakingHomeMediator(0).setCachedBalance.selector;
-    bytes memory data = abi.encodeWithSelector(methodSelector, _delegate, _at, _amount);
+    uint256 pushAmount = balanceOfAt(__delegate, __at);
+    uint256 pushTotalSupply = totalSupplyAt(__at);
+
+    bytes memory data = abi.encodeWithSelector(methodSelector, __delegate, pushAmount, pushTotalSupply, __at);
 
     bytes32 dataHash = keccak256(data);
     _setNonce(dataHash);
@@ -173,5 +224,27 @@ contract StakingForeignMediator is BasicStakingMediator, NumericIdCounter {
 
   function balanceOf(address _delegate) external view returns (uint256) {
     return _balances[_delegate];
+  }
+
+  function balanceCacheLength(address __delegate) external view returns (uint256) {
+    return _cachedBalances[__delegate].length;
+  }
+
+  function totalSupplyCacheLength() external view returns (uint256) {
+    return _cachedTotalSupply.length;
+  }
+
+  function balanceRecordAt(address __delegate, uint256 __cacheSlot)
+    public
+    view
+    returns (uint256 timestamp, uint256 value)
+  {
+    Checkpoint storage checkpoint = _cachedBalances[__delegate][__cacheSlot];
+    return (checkpoint.fromTimestamp, checkpoint.value);
+  }
+
+  function totalSupplyRecordSlot(uint256 __cacheSlot) public view returns (uint256 timestamp, uint256 value) {
+    Checkpoint storage checkpoint = _cachedTotalSupply[__cacheSlot];
+    return (checkpoint.fromTimestamp, checkpoint.value);
   }
 }

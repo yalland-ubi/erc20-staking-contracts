@@ -224,6 +224,9 @@ describe('StakingForeignMediator Behaviour tests', () => {
     const receipt = await web3.eth.getTransactionReceipt(res.tx);
     const logs = AMBMock.decodeLogs(receipt.logs);
 
-    assert.equal(logs[1].args.data, homeMediator.contract.methods.setCachedBalance(alice, at, ether(30)).encodeABI());
+    assert.equal(
+      logs[1].args.data,
+      homeMediator.contract.methods.setCachedBalance(alice, ether(30), ether(30), at).encodeABI()
+    );
   });
 });

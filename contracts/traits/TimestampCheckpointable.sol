@@ -23,10 +23,14 @@ contract TimestampCheckpointable {
     _updateValueAt(__checkpoints, __value, now);
   }
 
-  function _updateValueAt(Checkpoint[] storage __checkpoints, uint256 __value, uint256 __value) internal {
-    if ((__checkpoints.length == 0) || (__checkpoints[__checkpoints.length - 1].fromTimestamp < __value)) {
+  function _updateValueAt(
+    Checkpoint[] storage __checkpoints,
+    uint256 __value,
+    uint256 __timestamp
+  ) internal {
+    if ((__checkpoints.length == 0) || (__checkpoints[__checkpoints.length - 1].fromTimestamp < __timestamp)) {
       Checkpoint storage newCheckPoint = __checkpoints[__checkpoints.length++];
-      newCheckPoint.fromTimestamp = uint128(__value);
+      newCheckPoint.fromTimestamp = uint128(__timestamp);
       newCheckPoint.value = uint128(__value);
     } else {
       Checkpoint storage oldCheckPoint = __checkpoints[__checkpoints.length - 1];
