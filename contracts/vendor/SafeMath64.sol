@@ -2,7 +2,7 @@
 // Adapted for uint64, pragma ^0.4.24, and satisfying our linter rules
 // Also optimized the mul() implementation, see https://github.com/aragon/aragonOS/pull/417
 
-pragma solidity ^0.4.24;
+pragma solidity 0.5.17;
 
 
 /**
