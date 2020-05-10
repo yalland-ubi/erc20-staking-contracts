@@ -15,17 +15,7 @@ StakingToken.numberFormat = 'String';
 StakingForeignMediator.numberFormat = 'String';
 StakingHomeMediator.numberFormat = 'String';
 
-const {
-  ether,
-  now,
-  increaseTime,
-  assertRevert,
-  zeroAddress,
-  getEventArg,
-  getResTimestamp,
-} = require('@galtproject/solidity-test-chest')(web3);
-
-const keccak256 = web3.utils.soliditySha3;
+const { ether, now, increaseTime, assertRevert } = require('@galtproject/solidity-test-chest')(web3);
 
 async function deployWithProxy(implContract, proxyAdminContract, ...args) {
   const implementation = await implContract.new();
@@ -62,9 +52,7 @@ describe('StakingHomeMediator Behaviour tests', () => {
   let proxyAdmin;
   let governance;
   let stakingToken;
-  let foreignMediatorProxy;
   let foreignMediator;
-  let homeMediator;
   let bridge;
 
   beforeEach(async function() {
@@ -91,7 +79,6 @@ describe('StakingHomeMediator Behaviour tests', () => {
       defaultSender
     );
     foreignMediator = res.contract;
-    foreignMediatorProxy = res.proxy;
 
     res = await deployWithProxy(
       StakingGovernance,
