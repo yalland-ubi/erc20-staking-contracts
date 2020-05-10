@@ -345,7 +345,7 @@ contract StakingGovernance is Initializable, EVMScriptRunner, TimeHelpers {
 
     vote_.executed = true;
 
-    runScript(vote_.executionScript);
+    _runScript(vote_.executionScript);
 
     emit ExecuteVote(_voteId);
   }

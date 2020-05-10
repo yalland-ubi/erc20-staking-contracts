@@ -22,13 +22,15 @@ contract EVMScriptRunner {
    * @param _script to execute. Notice, that the script format is not compatible with evmScript format from Aragon.
    *                Also, there is no support of several call scripts within a several tx.
    */
-  function runScript(bytes memory _script) internal {
+  function _runScript(bytes memory _script) internal {
     (address destination, bytes memory data) = abi.decode(_script, (address, bytes));
 
     // TODO: calculate the exact gas deduction value for further operations
+    // solhint-disable-next-line avoid-low-level-calls
     (bool ok, bytes memory output) = destination.call(data);
 
     if (!ok) {
+      // solhint-disable-next-line no-inline-assembly
       assembly {
         let ptr := mload(0x40)
 
