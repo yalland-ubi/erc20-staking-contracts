@@ -15,9 +15,10 @@ import "@openzeppelin/contracts/utils/SafeCast.sol";
 import "./mediators/BasicStakingMediator.sol";
 import "./traits/NumericIdCounter.sol";
 import "./interfaces/IStakingHomeMediator.sol";
+import "./interfaces/IStakingForeignMediator.sol";
 
 
-contract StakingForeignMediator is BasicStakingMediator, NumericIdCounter {
+contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator, NumericIdCounter {
   using SafeMath for uint256;
   using SafeCast for uint256;
 
