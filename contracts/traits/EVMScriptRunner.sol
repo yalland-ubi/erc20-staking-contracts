@@ -18,10 +18,10 @@ contract EVMScriptRunner {
   event ScriptResult(address indexed destination, bytes script, bytes returnData);
 
   /**
-  * @dev Executes script, reverts if the execution fails
-  * @param _script to execute. Notice, that the script format is not compatible with evmScript format from Aragon.
-  *                Also, there is no support of several call scripts within a several tx.
-  */
+   * @dev Executes script, reverts if the execution fails
+   * @param _script to execute. Notice, that the script format is not compatible with evmScript format from Aragon.
+   *                Also, there is no support of several call scripts within a several tx.
+   */
   function runScript(bytes memory _script) internal {
     (address destination, bytes memory data) = abi.decode(_script, (address, bytes));
 
@@ -33,22 +33,22 @@ contract EVMScriptRunner {
         let ptr := mload(0x40)
 
         switch returndatasize
-        case 0 {
-          // No error data was returned, revert with "EVMCALLS_CALL_REVERTED"
-          // See remix: doing a `revert("EVMCALLS_CALL_REVERTED")` always results in
-          // this memory layout
-          mstore(ptr, 0x08c379a000000000000000000000000000000000000000000000000000000000)         // error identifier
-          mstore(add(ptr, 0x04), 0x0000000000000000000000000000000000000000000000000000000000000020) // starting offset
-          mstore(add(ptr, 0x24), 0x0000000000000000000000000000000000000000000000000000000000000016) // reason length
-          mstore(add(ptr, 0x44), 0x45564d43414c4c535f43414c4c5f524556455254454400000000000000000000) // reason
+          case 0 {
+            // No error data was returned, revert with "EVMCALLS_CALL_REVERTED"
+            // See remix: doing a `revert("EVMCALLS_CALL_REVERTED")` always results in
+            // this memory layout
+            mstore(ptr, 0x08c379a000000000000000000000000000000000000000000000000000000000) // error identifier
+            mstore(add(ptr, 0x04), 0x0000000000000000000000000000000000000000000000000000000000000020) // starting offset
+            mstore(add(ptr, 0x24), 0x0000000000000000000000000000000000000000000000000000000000000016) // reason length
+            mstore(add(ptr, 0x44), 0x45564d43414c4c535f43414c4c5f524556455254454400000000000000000000) // reason
 
-          revert(ptr, 100) // 100 = 4 + 3 * 32 (error identifier + 3 words for the ABI encoded error)
-        }
-        default {
-          // Forward the full error data
-          returndatacopy(ptr, 0, returndatasize)
-          revert(ptr, returndatasize)
-        }
+            revert(ptr, 100) // 100 = 4 + 3 * 32 (error identifier + 3 words for the ABI encoded error)
+          }
+          default {
+            // Forward the full error data
+            returndatacopy(ptr, 0, returndatasize)
+            revert(ptr, returndatasize)
+          }
       }
     }
 
