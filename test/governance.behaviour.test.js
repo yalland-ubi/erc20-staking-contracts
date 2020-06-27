@@ -55,7 +55,7 @@ describe('StakingHomeMediator Behaviour tests', () => {
   let foreignMediator;
   let bridge;
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     bridge = await AMBMock.new();
     await bridge.setMaxGasPerTx(2000000);
     stakingToken = await StakingToken.new('My Staking Token', 'MST', 18, ether(250));
@@ -109,7 +109,7 @@ describe('StakingHomeMediator Behaviour tests', () => {
     assert.equal(await foreignMediator.totalSupplyAt(await now()), ether(30));
   });
 
-  it('allow creating and approving proposal for an external contract', async function() {
+  it('allow creating and approving proposal for an external contract', async function () {
     assert.equal(await proxyAdmin.owner(), governance.address);
     assert.equal(await proxyAdmin.getProxyAdmin(foreignMediator.address), proxyAdmin.address);
 
@@ -121,7 +121,7 @@ describe('StakingHomeMediator Behaviour tests', () => {
     assert.equal(await getProxyAdmin(foreignMediator.address), bob);
   });
 
-  it('allow creating and approving proposal for internal params', async function() {
+  it('allow creating and approving proposal for internal params', async function () {
     assert.equal(await governance.voteTime(), voteTime);
     assert.equal(await proxyAdmin.getProxyAdmin(foreignMediator.address), proxyAdmin.address);
 

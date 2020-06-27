@@ -54,7 +54,7 @@ describe('StakingHomeMediator Behaviour tests', () => {
   let homeMediator;
   let bridge;
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     bridge = await AMBMock.new();
     await bridge.setMaxGasPerTx(2000000);
     stakingToken = await StakingToken.new('My Staking Token', 'MST', 18, ether(250));
@@ -104,7 +104,7 @@ describe('StakingHomeMediator Behaviour tests', () => {
     await stakingToken.transfer(charlie, ether(50));
   });
 
-  it('should accept incoming cached balances on foreign increment/decrement', async function() {
+  it('should accept incoming cached balances on foreign increment/decrement', async function () {
     // step1 (alice=0, bob=0, charlie=0, total=0)
     const step0 = await now();
     assert.equal(await homeMediator.balanceOfAt(alice, step0), 0);
@@ -158,7 +158,7 @@ describe('StakingHomeMediator Behaviour tests', () => {
   });
 
   // TODO: make message fail
-  it('should accept incoming cached balances on foreign pushRecentBalance', async function() {
+  it('should accept incoming cached balances on foreign pushRecentBalance', async function () {
     await stakingToken.transfer(alice, ether(100));
     await stakingToken.transfer(bob, ether(20));
     await increaseTime(10);
