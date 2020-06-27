@@ -9,7 +9,6 @@
 
 pragma solidity ^0.5.13;
 
-
 interface IStakingHomeMediator {
   function setCachedBalance(
     address __delegator,
@@ -18,8 +17,5 @@ interface IStakingHomeMediator {
     uint256 __timestamp
   ) external;
 
-  function setLockedStake(
-    address __delegator,
-    uint256 __value
-  ) external;
+  function setLockedStake(address __delegator, uint256 __value) external;
 }

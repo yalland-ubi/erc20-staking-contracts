@@ -9,7 +9,6 @@
 
 pragma solidity ^0.5.13;
 
-
 interface IAMB {
   function messageSender() external view returns (address);
 

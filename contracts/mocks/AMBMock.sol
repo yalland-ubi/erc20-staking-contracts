@@ -1,6 +1,5 @@
 pragma solidity ^0.5.13;
 
-
 contract AMBMock {
   event MockedEvent(bytes encodedData);
   event MockedEventDetailed(address sender, address contractAddress, uint256 gas, bytes data);

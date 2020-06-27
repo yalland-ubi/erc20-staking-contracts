@@ -12,7 +12,6 @@ pragma solidity ^0.5.13;
 import "./mediators/BasicStakingMediator.sol";
 import "./interfaces/IStakingHomeMediator.sol";
 
-
 contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
   event SetLockedStake(address delegator, uint256 value, bytes32 messageId);
   event SetCachedBalance(address delegator, uint256 balance, uint256 totalSupply, uint256 timestamp);
@@ -68,7 +67,7 @@ contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
   }
 
   // GETTERS
-  function getLockedBalanceOf(address __delegator, uint256 __value) external returns (uint256) {
+  function getLockedBalanceOf(address __delegator) external view returns (uint256) {
     return _lockedBalances[__delegator];
   }
 }
