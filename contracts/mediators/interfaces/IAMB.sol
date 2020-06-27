@@ -17,6 +17,10 @@ interface IAMB {
 
   function transactionHash() external view returns (bytes32);
 
+  function messageId() external view returns (bytes32);
+
+  function messageSourceChainId() external view returns (bytes32);
+
   function messageCallStatus(bytes32 _txHash) external view returns (bool);
 
   function failedMessageDataHash(bytes32 _txHash) external view returns (bytes32);
@@ -29,5 +33,5 @@ interface IAMB {
     address _contract,
     bytes calldata _data,
     uint256 _gas
-  ) external;
+  ) external returns (bytes32);
 }

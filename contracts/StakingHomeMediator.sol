@@ -14,8 +14,10 @@ import "./interfaces/IStakingHomeMediator.sol";
 
 
 contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
-  uint256 public tree = 0;
-  uint256 public lastTime = 0;
+  event SetLockedStake(address delegator, uint256 value, bytes32 messageId);
+  event SetCachedBalance(address delegator, uint256 balance, uint256 totalSupply, uint256 timestamp);
+
+  mapping(address => uint256) internal _lockedBalances;
 
   function initialize(
     address __bridgeContract,
@@ -27,8 +29,6 @@ contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
     _initialize(__bridgeContract, __mediatorContractOnOtherSide, __requestGasLimit, __oppositeChainId, __owner);
   }
 
-  event SetCachedBalance(address delegator, uint256 balance, uint256 totalSupply, uint256 timestamp);
-
   function setCachedBalance(
     address __delegator,
     uint256 __balance,
@@ -37,12 +37,14 @@ contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
   ) external {
     require(msg.sender == address(bridgeContract), "Only bridge allowed");
     require(bridgeContract.messageSender() == mediatorContractOnOtherSide, "Invalid contract on other side");
+
     if (_cachedBalances[__delegator].length > 0) {
       require(
         __timestamp >= _cachedBalances[__delegator][_cachedBalances[__delegator].length - 1].fromTimestamp,
         "Timestamp should be greater than the last one"
       );
     }
+
     if (_cachedTotalSupply.length > 0) {
       require(
         __timestamp >= _cachedTotalSupply[_cachedTotalSupply.length - 1].fromTimestamp,
@@ -54,5 +56,19 @@ contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
     _updateValueAt(_cachedTotalSupply, __totalSupply, __timestamp);
 
     emit SetCachedBalance(__delegator, __balance, __totalSupply, __timestamp);
+  }
+
+  function setLockedStake(address __delegator, uint256 __value) external {
+    require(msg.sender == address(bridgeContract), "Only bridge allowed");
+    require(bridgeContract.messageSender() == mediatorContractOnOtherSide, "Invalid contract on other side");
+
+    _lockedBalances[__delegator] = __value;
+
+    emit SetLockedStake(__delegator, __value, bridgeContract.messageId());
+  }
+
+  // GETTERS
+  function getLockedBalanceOf(address __delegator, uint256 __value) external returns (uint256) {
+    return _lockedBalances[__delegator];
   }
 }

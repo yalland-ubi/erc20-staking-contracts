@@ -56,7 +56,7 @@ contract AMBMock {
     address _contract,
     bytes memory _data,
     uint256 _gas
-  ) public {
+  ) public returns (bytes32) {
     emit MockedEvent(abi.encodePacked(msg.sender, _contract, _gas, uint8(0x00), _data));
     emit MockedEventDetailed(msg.sender, _contract, _gas, _data);
 
@@ -65,5 +65,7 @@ contract AMBMock {
     } else if (msg.sender == foreignMediator) {
       executeMessageCall(_contract, msg.sender, _data, keccak256("stub"), _gas);
     }
+
+    return keccak256(abi.encode(now, msg.sender, _contract, _data));
   }
 }
