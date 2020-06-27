@@ -23,4 +23,6 @@ interface IStakingHomeMediator {
   function balanceOfAt(address __delegate, uint256 __timestamp) external view returns (uint256);
 
   function totalSupplyAt(uint256 __timestamp) external view returns (uint256);
+
+  function lockedBalanceOf(address __delegator) external view returns (uint256);
 }

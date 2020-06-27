@@ -67,7 +67,7 @@ contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
   }
 
   // GETTERS
-  function getLockedBalanceOf(address __delegator) external view returns (uint256) {
+  function lockedBalanceOf(address __delegator) external view returns (uint256) {
     return _lockedBalances[__delegator];
   }
 }
