@@ -6,6 +6,7 @@ contract AMBMock {
 
   address public foreignMediator;
   address public homeMediator;
+  address public messageId;
   address public messageSender;
   uint256 public maxGasPerTx;
   bytes32 public transactionHash;
