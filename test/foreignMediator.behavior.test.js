@@ -287,7 +287,7 @@ describe('StakingForeignMediator Behaviour tests', () => {
 
     await assertRevert(
       foreignMediator.unstake(ether(21), { from: bob }),
-      'StakingForeignMediator: unstake amount exceeds the balance'
+      'StakingForeignMediator: unstake amount exceeds the unlocked balance'
     );
     res = await foreignMediator.unstake(ether(10), { from: bob });
     const step3 = await getResTimestamp(res);
