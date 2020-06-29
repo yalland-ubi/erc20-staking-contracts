@@ -13,7 +13,6 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "./interfaces/IAMB.sol";
 
-
 contract AMBMediator is Ownable {
   event SetBridgeContract(address bridgeContract);
   event SetMediatorContractOnOtherSide(address mediatorContract);

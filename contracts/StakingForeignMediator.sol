@@ -17,17 +17,18 @@ import "./traits/NumericIdCounter.sol";
 import "./interfaces/IStakingHomeMediator.sol";
 import "./interfaces/IStakingForeignMediator.sol";
 
-
 contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator, NumericIdCounter {
   using SafeMath for uint256;
   using SafeCast for uint256;
 
+  event Lock(address indexed locker, uint256 amount);
+  event SlashLocked(address indexed locker, uint256 slashAmount);
   event Stake(
     address indexed delegate,
     uint256 at,
     uint256 amount,
-    uint256 balanceBefore,
     uint256 balanceAfter,
+    uint256 lockedAfter,
     uint256 balanceCacheSlot,
     uint256 totalSupplyCacheSlot
   );
@@ -35,13 +36,16 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
     address indexed delegate,
     uint256 at,
     uint256 amount,
-    uint256 balanceBefore,
     uint256 balanceAfter,
+    uint256 unlockedBalanceAfter,
     uint256 balanceCacheSlot,
     uint256 totalSupplyCacheSlot
   );
+  event SetCoolDownPeriodLength(uint256 coolDownPeriodLength);
+  event SetLockedStakeSlasher(address lockedStakeSlasher);
   event NewCoolDownBox(address indexed delegator, uint256 boxId, uint256 amount, uint64 canBeReleasedSince);
   event ReleaseCoolDownBox(address indexed delegator, uint256 boxId, uint256 amount, uint256 releasedAt);
+  event PostLockedStake(bytes32 indexed messageId, address indexed delegate, uint256 value);
   event SetYSTToken(address token);
 
   struct CoolDownBox {
@@ -54,9 +58,15 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
 
   IERC20 public stakingToken;
   uint256 public coolDownPeriodLength;
+  address public lockedStakeSlasher;
 
   uint256 public totalSupply;
+  uint256 public totalLocked;
+  uint256 public totalUnlocked;
   mapping(address => uint256) internal _balances;
+  mapping(address => uint256) internal _unlockedBalances;
+  mapping(address => uint256) internal _lockedBalances;
+
   // ID => details
   mapping(uint256 => CoolDownBox) public coolDownBoxes;
 
@@ -81,6 +91,12 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
     _setCoolDownPeriodLength(_coolDownPeriodLength);
   }
 
+  function setLockedStakeSlasher(address _lockedStakeSlasher) external onlyOwner {
+    lockedStakeSlasher = _lockedStakeSlasher;
+
+    emit SetLockedStakeSlasher(_lockedStakeSlasher);
+  }
+
   // DELEGATE INTERFACE
 
   function stake(uint256 _amount) external {
@@ -94,27 +110,66 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
   }
 
   function unstake(uint256 _amount) external {
-    require(_balances[msg.sender] >= _amount, "StakingForeignMediator: unstake amount exceeds the balance");
+    require(
+      _unlockedBalances[msg.sender] >= _amount,
+      "StakingForeignMediator: unstake amount exceeds the unlocked balance"
+    );
 
     _applyUnstake(msg.sender, _amount);
-
-    uint256 boxId = _nextCounterId();
-    uint64 canBeReleasedSince = (now + coolDownPeriodLength).toUint64();
-    require(canBeReleasedSince > now, "StakingForeignMediator: either overflow or 0 cooldown period");
-
-    coolDownBoxes[boxId] = CoolDownBox({
-      holder: msg.sender,
-      amount: _amount,
-      released: false,
-      canBeReleasedSince: canBeReleasedSince,
-      releasedAt: 0
-    });
-
-    emit NewCoolDownBox(msg.sender, boxId, _amount, canBeReleasedSince);
-
+    _createCoolDownBox(msg.sender, _amount);
     _postCachedBalance(msg.sender, now);
   }
 
+  function lock(uint256 __amount) external {
+    require(_unlockedBalances[msg.sender] >= __amount, "StakingForeignMediator lock amount exceeds the balance");
+
+    _unlockedBalances[msg.sender] = _unlockedBalances[msg.sender].sub(__amount);
+    _lockedBalances[msg.sender] = _lockedBalances[msg.sender].add(__amount);
+    totalUnlocked = totalUnlocked.sub(__amount);
+    totalLocked = totalLocked.add(__amount);
+
+    _postLockedStake(msg.sender, __amount);
+
+    emit Lock(msg.sender, __amount);
+  }
+
+  function releaseCoolDownBox(uint256 _boxId) external {
+    CoolDownBox storage box = coolDownBoxes[_boxId];
+
+    require(now > box.canBeReleasedSince, "StakingForeignMediator: cannot be released yet");
+    require(box.holder == msg.sender, "StakingForeignMediator: only box holder allowed");
+    require(box.released == false, "StakingForeignMediator: the box has been already released");
+
+    box.released = true;
+
+    emit ReleaseCoolDownBox(msg.sender, _boxId, box.amount, now);
+
+    stakingToken.transfer(msg.sender, box.amount);
+  }
+
+  // LOCKED_STAKE_SLASHER INTERFACE
+
+  function slashLocked(address __delegator, uint256 __amount) external {
+    require(msg.sender == lockedStakeSlasher, "StakingForeignMediator: Only lockedStakeSlasher allowed");
+
+    require(
+      _lockedBalances[__delegator] >= __amount,
+      "StakingForeignMediator: Slash amount exceeds the locked balance"
+    );
+
+    _balances[__delegator] = _balances[__delegator].sub(__amount);
+    _lockedBalances[__delegator] = _lockedBalances[__delegator].sub(__amount);
+    totalSupply = totalSupply.sub(__amount);
+    totalLocked = totalLocked.sub(__amount);
+
+    _createCoolDownBox(msg.sender, __amount);
+
+    emit SlashLocked(__delegator, __amount);
+
+    _postLockedStake(__delegator, __amount);
+  }
+
+  // PERMISSIONLESS INTERFACE
   function pushCachedBalance(
     address __delegate,
     uint256 __delegateCacheSlotIndex,
@@ -135,29 +190,22 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
     _postCachedBalance(__delegate, __at);
   }
 
-  function releaseCoolDownBox(uint256 _boxId) external {
-    CoolDownBox storage box = coolDownBoxes[_boxId];
-
-    require(now > box.canBeReleasedSince, "StakingForeignMediator: cannot be released yet");
-    require(box.holder == msg.sender, "StakingForeignMediator: only box holder allowed");
-    require(box.released == false, "StakingForeignMediator: the box has been already released");
-
-    box.released = true;
-
-    emit ReleaseCoolDownBox(msg.sender, _boxId, box.amount, now);
-
-    stakingToken.transfer(msg.sender, box.amount);
+  function postLockedStake(address __delegate) external {
+    _postLockedStake(__delegate, _lockedBalances[__delegate]);
   }
 
   // INTERNAL METHODS
 
   function _applyStake(address _delegate, uint256 _amount) internal {
-    uint256 balanceBefore = _balances[_delegate];
-    uint256 balanceAfter = balanceBefore.add(_amount);
+    uint256 balanceAfter = _balances[_delegate].add(_amount);
+    uint256 unlockedBalanceAfter = _unlockedBalances[_delegate].add(_amount);
     uint256 totalSupplyAfter = totalSupply.add(_amount);
+    uint256 totalUnlockedAfter = totalUnlocked.add(_amount);
 
     _balances[_delegate] = balanceAfter;
+    _unlockedBalances[_delegate] = unlockedBalanceAfter;
     totalSupply = totalSupplyAfter;
+    totalUnlocked = totalUnlockedAfter;
 
     _updateValueAtNow(_cachedBalances[_delegate], balanceAfter);
     _updateValueAtNow(_cachedTotalSupply, totalSupplyAfter);
@@ -166,20 +214,23 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
       _delegate,
       now,
       _amount,
-      balanceBefore,
       balanceAfter,
+      unlockedBalanceAfter,
       _cachedBalances[_delegate].length - 1,
       _cachedTotalSupply.length - 1
     );
   }
 
   function _applyUnstake(address _delegate, uint256 _amount) internal {
-    uint256 balanceBefore = _balances[_delegate];
-    uint256 balanceAfter = balanceBefore.sub(_amount);
+    uint256 balanceAfter = _balances[_delegate].sub(_amount);
+    uint256 unlockedBalanceAfter = _unlockedBalances[_delegate].sub(_amount);
     uint256 totalSupplyAfter = totalSupply.sub(_amount);
+    uint256 totalUnlockedAfter = totalUnlocked.sub(_amount);
 
     _balances[_delegate] = balanceAfter;
+    _unlockedBalances[_delegate] = unlockedBalanceAfter;
     totalSupply = totalSupplyAfter;
+    totalUnlocked = totalUnlockedAfter;
 
     _updateValueAtNow(_cachedBalances[_delegate], balanceAfter);
     _updateValueAtNow(_cachedTotalSupply, totalSupplyAfter);
@@ -188,11 +239,27 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
       _delegate,
       now,
       _amount,
-      balanceBefore,
       balanceAfter,
+      unlockedBalanceAfter,
       _cachedBalances[_delegate].length - 1,
       _cachedTotalSupply.length - 1
     );
+  }
+
+  function _createCoolDownBox(address __beneficiary, uint256 __amount) internal {
+    uint256 boxId = _nextCounterId();
+    uint64 canBeReleasedSince = (now + coolDownPeriodLength).toUint64();
+    require(canBeReleasedSince > now, "StakingForeignMediator: either overflow or 0 cooldown period");
+
+    coolDownBoxes[boxId] = CoolDownBox({
+      holder: __beneficiary,
+      amount: __amount,
+      released: false,
+      canBeReleasedSince: canBeReleasedSince,
+      releasedAt: 0
+    });
+
+    emit NewCoolDownBox(__beneficiary, boxId, __amount, canBeReleasedSince);
   }
 
   function _postCachedBalance(address __delegate, uint256 __at) internal {
@@ -208,10 +275,19 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
     bridgeContract.requireToPassMessage(mediatorContractOnOtherSide, data, requestGasLimit);
   }
 
+  function _postLockedStake(address __delegate, uint256 __value) internal {
+    bytes4 methodSelector = IStakingHomeMediator(0).setLockedStake.selector;
+    bytes memory data = abi.encodeWithSelector(methodSelector, __delegate, __value);
+    bytes32 messageId = bridgeContract.requireToPassMessage(mediatorContractOnOtherSide, data, requestGasLimit);
+    emit PostLockedStake(messageId, __delegate, __value);
+  }
+
   function _setCoolDownPeriodLength(uint256 _coolDownPeriodLength) internal {
     require(_coolDownPeriodLength > 0, "StakingForeignMediator: unstake amount exceeds the balance");
 
     coolDownPeriodLength = _coolDownPeriodLength;
+
+    emit SetCoolDownPeriodLength(_coolDownPeriodLength);
   }
 
   function _setYSTToken(address _token) internal {
@@ -225,6 +301,14 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
 
   function balanceOf(address _delegate) external view returns (uint256) {
     return _balances[_delegate];
+  }
+
+  function lockedBalanceOf(address __delegate) external view returns (uint256) {
+    return _lockedBalances[__delegate];
+  }
+
+  function unlockedBalanceOf(address __delegate) external view returns (uint256) {
+    return _unlockedBalances[__delegate];
   }
 
   function balanceCacheLength(address __delegate) external view returns (uint256) {

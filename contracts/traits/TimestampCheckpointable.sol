@@ -9,7 +9,6 @@
 
 pragma solidity ^0.5.13;
 
-
 contract TimestampCheckpointable {
   struct Checkpoint {
     uint128 fromTimestamp;

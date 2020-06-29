@@ -15,7 +15,6 @@ import "@openzeppelin/upgrades/contracts/Initializable.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "../traits/TimestampCheckpointable.sol";
 
-
 contract BasicStakingMediator is Ownable, Initializable, AMBMediator, TimestampCheckpointable {
   event RequestFailedMessageFix(bytes32 indexed txHash);
 

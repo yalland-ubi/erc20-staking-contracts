@@ -9,7 +9,6 @@
 
 pragma solidity 0.5.17;
 
-
 contract EVMScriptRunner {
   /* This is manually crafted in assembly
   string private constant ERROR_EXECUTOR_INVALID_RETURN = "EVMRUN_EXECUTOR_INVALID_RETURN";

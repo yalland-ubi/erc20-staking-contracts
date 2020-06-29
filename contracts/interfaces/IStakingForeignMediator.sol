@@ -9,7 +9,6 @@
 
 pragma solidity 0.5.17;
 
-
 interface IStakingForeignMediator {
   // OWNER INTERFACE
 

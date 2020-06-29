@@ -41,7 +41,7 @@ async function deployWithProxy(implContract, proxyAdminContract, ...args) {
 }
 
 describe('StakingForeignMediator Behaviour tests', () => {
-  const [alice, bob, charlie, mediatorOnTheOtherSide] = accounts;
+  const [alice, bob, charlie, mediatorOnTheOtherSide, stakeSlasher] = accounts;
 
   const coolDownPeriodLength = 3600;
 
@@ -51,7 +51,7 @@ describe('StakingForeignMediator Behaviour tests', () => {
   let homeMediator;
   let bridge;
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     bridge = await AMBMock.new();
     await bridge.setMaxGasPerTx(2000000);
     stakingToken = await StakingToken.new('My Staking Token', 'MST', 18, ether(250));
@@ -80,7 +80,7 @@ describe('StakingForeignMediator Behaviour tests', () => {
     await stakingToken.transfer(charlie, ether(50));
   });
 
-  it('should increment/decrement current balance on stake/unstake', async function() {
+  it('should increment/decrement current balance on stake/unstake', async function () {
     assert.equal(await foreignMediator.totalSupply(), 0);
 
     // approve
@@ -104,19 +104,150 @@ describe('StakingForeignMediator Behaviour tests', () => {
     assert.equal(await foreignMediator.balanceOf(charlie), ether(50));
     assert.equal(await foreignMediator.totalSupply(), ether(100));
 
+    // unlocked balance stake checks
+    assert.equal(await foreignMediator.unlockedBalanceOf(alice), ether(30));
+    assert.equal(await foreignMediator.unlockedBalanceOf(bob), ether(20));
+    assert.equal(await foreignMediator.unlockedBalanceOf(charlie), ether(50));
+    assert.equal(await foreignMediator.totalUnlocked(), ether(100));
+
     // unstake
     await foreignMediator.unstake(ether(10), { from: alice });
     await foreignMediator.unstake(ether(10), { from: bob });
     await foreignMediator.unstake(ether(10), { from: charlie });
 
-    // stake checks
+    // balance stake checks
     assert.equal(await foreignMediator.balanceOf(alice), ether(20));
     assert.equal(await foreignMediator.balanceOf(bob), ether(10));
     assert.equal(await foreignMediator.balanceOf(charlie), ether(40));
     assert.equal(await foreignMediator.totalSupply(), ether(70));
+
+    // unlocked balance stake checks
+    assert.equal(await foreignMediator.unlockedBalanceOf(alice), ether(20));
+    assert.equal(await foreignMediator.unlockedBalanceOf(bob), ether(10));
+    assert.equal(await foreignMediator.unlockedBalanceOf(charlie), ether(40));
+    assert.equal(await foreignMediator.totalUnlocked(), ether(70));
   });
 
-  it('should increment/decrement cached balance', async function() {
+  it('should update locked/unlocked balances on locking', async function () {
+    assert.equal(await foreignMediator.totalSupply(), 0);
+
+    // approve
+    await stakingToken.approve(foreignMediator.address, ether(30), {
+      from: alice,
+    });
+    await stakingToken.approve(foreignMediator.address, ether(20), { from: bob });
+    await stakingToken.approve(foreignMediator.address, ether(50), {
+      from: charlie,
+    });
+
+    // stake
+    await foreignMediator.stake(ether(10), { from: alice });
+    await foreignMediator.stake(ether(20), { from: alice });
+    await foreignMediator.stake(ether(20), { from: bob });
+    await foreignMediator.stake(ether(50), { from: charlie });
+
+    // stake checks
+    assert.equal(await foreignMediator.balanceOf(alice), ether(30));
+    assert.equal(await foreignMediator.balanceOf(bob), ether(20));
+    assert.equal(await foreignMediator.balanceOf(charlie), ether(50));
+    assert.equal(await foreignMediator.totalSupply(), ether(100));
+
+    // unlocked balance stake checks
+    assert.equal(await foreignMediator.unlockedBalanceOf(alice), ether(30));
+    assert.equal(await foreignMediator.unlockedBalanceOf(bob), ether(20));
+    assert.equal(await foreignMediator.unlockedBalanceOf(charlie), ether(50));
+    assert.equal(await foreignMediator.totalUnlocked(), ether(100));
+
+    // Step #1. Lock...
+    await assertRevert(
+      foreignMediator.lock(ether(31), { from: alice }),
+      ' StakingForeignMediator lock amount exceeds the balance'
+    );
+    await foreignMediator.lock(ether(30), { from: alice });
+    await assertRevert(
+      foreignMediator.lock(ether(1), { from: alice }),
+      ' StakingForeignMediator lock amount exceeds the balance'
+    );
+    await foreignMediator.lock(ether(10), { from: bob });
+    await foreignMediator.lock(ether(10), { from: charlie });
+
+    // stake checks
+    assert.equal(await foreignMediator.balanceOf(alice), ether(30));
+    assert.equal(await foreignMediator.balanceOf(bob), ether(20));
+    assert.equal(await foreignMediator.balanceOf(charlie), ether(50));
+    assert.equal(await foreignMediator.totalSupply(), ether(100));
+
+    // unlocked balance stake checks
+    assert.equal(await foreignMediator.unlockedBalanceOf(alice), ether(0));
+    assert.equal(await foreignMediator.unlockedBalanceOf(bob), ether(10));
+    assert.equal(await foreignMediator.unlockedBalanceOf(charlie), ether(40));
+    assert.equal(await foreignMediator.totalUnlocked(), ether(50));
+
+    // locked balance stake checks
+    assert.equal(await foreignMediator.lockedBalanceOf(alice), ether(30));
+    assert.equal(await foreignMediator.lockedBalanceOf(bob), ether(10));
+    assert.equal(await foreignMediator.lockedBalanceOf(charlie), ether(10));
+    assert.equal(await foreignMediator.totalLocked(), ether(50));
+
+    // Step #2. Slash
+    await foreignMediator.setLockedStakeSlasher(stakeSlasher);
+    await assertRevert(
+      foreignMediator.setLockedStakeSlasher(stakeSlasher, { from: alice }),
+      'Ownable: caller is not the owner'
+    );
+
+    await assertRevert(
+      foreignMediator.slashLocked(alice, ether(31), { from: alice }),
+      'StakingForeignMediator: Only lockedStakeSlasher allowed'
+    );
+    await assertRevert(
+      foreignMediator.slashLocked(alice, ether(31), { from: stakeSlasher }),
+      'StakingForeignMediator: Slash amount exceeds the locked balance'
+    );
+    let res = await foreignMediator.slashLocked(alice, ether(30), { from: stakeSlasher });
+    const slash1At = await getResTimestamp(res);
+    res = await foreignMediator.slashLocked(bob, ether(10), { from: stakeSlasher });
+    const slash2At = await getResTimestamp(res);
+    res = await foreignMediator.slashLocked(charlie, ether(5), { from: stakeSlasher });
+    const slash3At = await getResTimestamp(res);
+
+    // stake checks
+    assert.equal(await foreignMediator.balanceOf(alice), ether(0));
+    assert.equal(await foreignMediator.balanceOf(bob), ether(10));
+    assert.equal(await foreignMediator.balanceOf(charlie), ether(45));
+    assert.equal(await foreignMediator.totalSupply(), ether(55));
+
+    // unlocked balance stake checks
+    assert.equal(await foreignMediator.unlockedBalanceOf(alice), ether(0));
+    assert.equal(await foreignMediator.unlockedBalanceOf(bob), ether(10));
+    assert.equal(await foreignMediator.unlockedBalanceOf(charlie), ether(40));
+    assert.equal(await foreignMediator.totalUnlocked(), ether(50));
+
+    // locked balance stake checks
+    assert.equal(await foreignMediator.lockedBalanceOf(alice), ether(0));
+    assert.equal(await foreignMediator.lockedBalanceOf(bob), ether(0));
+    assert.equal(await foreignMediator.lockedBalanceOf(charlie), ether(5));
+    assert.equal(await foreignMediator.totalLocked(), ether(5));
+
+    // check cooldown boxes
+    let box = await foreignMediator.coolDownBoxes(1);
+    assert.equal(box.holder, stakeSlasher);
+    assert.equal(box.released, false);
+    assert.equal(box.amount, ether(30));
+    assert.equal(box.canBeReleasedSince, slash1At + coolDownPeriodLength);
+    box = await foreignMediator.coolDownBoxes(2);
+    assert.equal(box.holder, stakeSlasher);
+    assert.equal(box.released, false);
+    assert.equal(box.amount, ether(10));
+    assert.equal(box.canBeReleasedSince, slash2At + coolDownPeriodLength);
+    box = await foreignMediator.coolDownBoxes(3);
+    assert.equal(box.holder, stakeSlasher);
+    assert.equal(box.released, false);
+    assert.equal(box.amount, ether(5));
+    assert.equal(box.canBeReleasedSince, slash3At + coolDownPeriodLength);
+  });
+
+  it('should increment/decrement cached balance', async function () {
     // step1 (alice=0, bob=0, charlie=0, total=0)
     const step0 = await now();
     assert.equal(await foreignMediator.balanceOfAt(alice, step0), 0);
@@ -156,7 +287,7 @@ describe('StakingForeignMediator Behaviour tests', () => {
 
     await assertRevert(
       foreignMediator.unstake(ether(21), { from: bob }),
-      'StakingForeignMediator: unstake amount exceeds the balance'
+      'StakingForeignMediator: unstake amount exceeds the unlocked balance'
     );
     res = await foreignMediator.unstake(ether(10), { from: bob });
     const step3 = await getResTimestamp(res);
@@ -169,7 +300,7 @@ describe('StakingForeignMediator Behaviour tests', () => {
     assert.equal(await foreignMediator.totalSupplyAt(step3 - 1), ether(50));
   });
 
-  it('should create cooldown box on unstake', async function() {
+  it('should create cooldown box on unstake', async function () {
     await stakingToken.approve(foreignMediator.address, ether(30), {
       from: alice,
     });
@@ -214,7 +345,7 @@ describe('StakingForeignMediator Behaviour tests', () => {
     );
   });
 
-  it('should notify AMB', async function() {
+  it('should notify AMB', async function () {
     await stakingToken.approve(foreignMediator.address, ether(30), {
       from: alice,
     });
