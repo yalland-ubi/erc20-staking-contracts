@@ -172,23 +172,18 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
 
   // PERMISSIONLESS INTERFACE
   function pushCachedBalance(
-    address __delegatorr,
+    address __delegator,
     uint256 __delegatorCacheSlotIndex,
-    uint256 __totalSupplyCacheSlotIndex,
-    uint256 __at
+    uint256 __totalSupplyCacheSlotIndex
   ) external {
-    Checkpoint storage pushBalance = _cachedBalances[__delegatorr][__delegatorCacheSlotIndex];
+    Checkpoint storage pushBalance = _cachedBalances[__delegator][__delegatorCacheSlotIndex];
     Checkpoint storage pushTotalSupply = _cachedTotalSupply[__totalSupplyCacheSlotIndex];
 
-    require(pushBalance.fromTimestamp == __at, "StakingForeignMediator: Balance invalid timestamp");
-    require(pushTotalSupply.fromTimestamp == __at, "StakingForeignMediator: Total supply invalid timestamp");
+    uint256 at = pushBalance.fromTimestamp;
+    require(at != 0, "StakingForeignMediator: Invalid cache slot");
+    require(pushTotalSupply.fromTimestamp == at, "StakingForeignMediator: Total supply invalid timestamp");
 
-    require(
-      pushBalance.fromTimestamp == pushTotalSupply.fromTimestamp,
-      "StakingForeignMediator: Delegator and totalSupply timestamp don't match"
-    );
-
-    _postCachedBalance(__delegatorr, __at);
+    _postCachedBalance(__delegator, at);
   }
 
   function postLockedStake(address __delegator) external {

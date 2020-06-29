@@ -219,7 +219,7 @@ describe('StakingHomeMediator Behaviour tests', () => {
 
     // attempt to fix tx will fail
     await increaseTime(10);
-    await foreignMediator.pushCachedBalance(alice, step2BalanceSlot, step2TotalSupplySlot, step2, {
+    await foreignMediator.pushCachedBalance(alice, step2BalanceSlot, step2TotalSupplySlot, {
       from: charlie,
     });
     assert.equal(await bridge.messageCallStatus(keccak256('stub')), false);

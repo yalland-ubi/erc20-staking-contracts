@@ -23,8 +23,7 @@ interface IStakingForeignMediator {
   function pushCachedBalance(
     address __delegator,
     uint256 __delegatorCacheSlotIndex,
-    uint256 __totalSupplyCacheSlotIndex,
-    uint256 __at
+    uint256 __totalSupplyCacheSlotIndex
   ) external;
 
   function releaseCoolDownBox(uint256 __boxId) external;
