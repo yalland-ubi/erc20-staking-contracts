@@ -37,49 +37,49 @@ contract TimestampCheckpointable {
     }
   }
 
-  function _getValueAt(Checkpoint[] storage checkpoints, uint256 _timestamp) internal view returns (uint256) {
-    if (checkpoints.length == 0) {
+  function _getValueAt(Checkpoint[] storage __checkpoints, uint256 __timestamp) internal view returns (uint256) {
+    if (__checkpoints.length == 0) {
       return 0;
     }
 
     // Shortcut for the actual value
-    if (_timestamp >= checkpoints[checkpoints.length - 1].fromTimestamp) {
-      return checkpoints[checkpoints.length - 1].value;
+    if (__timestamp >= __checkpoints[__checkpoints.length - 1].fromTimestamp) {
+      return __checkpoints[__checkpoints.length - 1].value;
     }
 
-    if (_timestamp < checkpoints[0].fromTimestamp) {
+    if (__timestamp < __checkpoints[0].fromTimestamp) {
       return 0;
     }
 
     // Binary search of the value in the array
     uint256 min = 0;
-    uint256 max = checkpoints.length - 1;
+    uint256 max = __checkpoints.length - 1;
     while (max > min) {
       uint256 mid = (max + min + 1) / 2;
-      if (checkpoints[mid].fromTimestamp <= _timestamp) {
+      if (__checkpoints[mid].fromTimestamp <= __timestamp) {
         min = mid;
       } else {
         max = mid - 1;
       }
     }
-    return checkpoints[min].value;
+    return __checkpoints[min].value;
   }
 
   // GETTERS
 
-  function _balanceOfAt(address _address, uint256 _timestamp) internal view returns (uint256) {
-    if ((_cachedBalances[_address].length == 0) || (_cachedBalances[_address][0].fromTimestamp > _timestamp)) {
+  function _balanceOfAt(address __address, uint256 __timestamp) internal view returns (uint256) {
+    if ((_cachedBalances[__address].length == 0) || (_cachedBalances[__address][0].fromTimestamp > __timestamp)) {
       return 0;
     } else {
-      return _getValueAt(_cachedBalances[_address], _timestamp);
+      return _getValueAt(_cachedBalances[__address], __timestamp);
     }
   }
 
-  function _totalSupplyAt(uint256 _timestamp) internal view returns (uint256) {
-    if ((_cachedTotalSupply.length == 0) || (_cachedTotalSupply[0].fromTimestamp > _timestamp)) {
+  function _totalSupplyAt(uint256 __timestamp) internal view returns (uint256) {
+    if ((_cachedTotalSupply.length == 0) || (_cachedTotalSupply[0].fromTimestamp > __timestamp)) {
       return 0;
     } else {
-      return _getValueAt(_cachedTotalSupply, _timestamp);
+      return _getValueAt(_cachedTotalSupply, __timestamp);
     }
   }
 }

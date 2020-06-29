@@ -16,56 +16,56 @@ contract AMBMock {
   mapping(bytes32 => bytes32) public failedMessageDataHash;
   mapping(bytes32 => bytes) public failedReason;
 
-  function setMaxGasPerTx(uint256 _value) external {
-    maxGasPerTx = _value;
+  function setMaxGasPerTx(uint256 __value) external {
+    maxGasPerTx = __value;
   }
 
-  function setForeignMediator(address _foreignMediator) external {
-    foreignMediator = _foreignMediator;
+  function setForeignMediator(address __foreignMediator) external {
+    foreignMediator = __foreignMediator;
   }
 
-  function setHomeMediator(address _homeMediator) external {
-    homeMediator = _homeMediator;
+  function setHomeMediator(address __homeMediator) external {
+    homeMediator = __homeMediator;
   }
 
   function executeMessageCall(
-    address _contract,
-    address _sender,
-    bytes memory _data,
-    bytes32 _txHash,
-    uint256 _gas
+    address __contract,
+    address __sender,
+    bytes memory __data,
+    bytes32 __txHash,
+    uint256 __gas
   ) public {
-    messageSender = _sender;
-    transactionHash = _txHash;
+    messageSender = __sender;
+    transactionHash = __txHash;
     // solhint-disable-next-line avoid-low-level-calls
-    (bool status, bytes memory response) = _contract.call.gas(_gas)(_data);
+    (bool status, bytes memory response) = __contract.call.gas(__gas)(__data);
     messageSender = address(0);
     transactionHash = bytes32(0);
 
-    messageCallStatus[_txHash] = status;
-    delete failedReason[_txHash];
+    messageCallStatus[__txHash] = status;
+    delete failedReason[__txHash];
     if (!status) {
-      failedMessageDataHash[_txHash] = keccak256(_data);
-      failedMessageReceiver[_txHash] = _contract;
-      failedMessageSender[_txHash] = _sender;
-      failedReason[_txHash] = response;
+      failedMessageDataHash[__txHash] = keccak256(__data);
+      failedMessageReceiver[__txHash] = __contract;
+      failedMessageSender[__txHash] = __sender;
+      failedReason[__txHash] = response;
     }
   }
 
   function requireToPassMessage(
-    address _contract,
-    bytes memory _data,
-    uint256 _gas
+    address __contract,
+    bytes memory __data,
+    uint256 __gas
   ) public returns (bytes32) {
-    emit MockedEvent(abi.encodePacked(msg.sender, _contract, _gas, uint8(0x00), _data));
-    emit MockedEventDetailed(msg.sender, _contract, _gas, _data);
+    emit MockedEvent(abi.encodePacked(msg.sender, __contract, __gas, uint8(0x00), __data));
+    emit MockedEventDetailed(msg.sender, __contract, __gas, __data);
 
     if (msg.sender == homeMediator) {
-      executeMessageCall(_contract, msg.sender, _data, keccak256("stub"), _gas);
+      executeMessageCall(__contract, msg.sender, __data, keccak256("stub"), __gas);
     } else if (msg.sender == foreignMediator) {
-      executeMessageCall(_contract, msg.sender, _data, keccak256("stub"), _gas);
+      executeMessageCall(__contract, msg.sender, __data, keccak256("stub"), __gas);
     }
 
-    return keccak256(abi.encode(now, msg.sender, _contract, _data));
+    return keccak256(abi.encode(now, msg.sender, __contract, __data));
   }
 }

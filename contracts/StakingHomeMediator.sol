@@ -34,20 +34,23 @@ contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
     uint256 __totalSupply,
     uint256 __timestamp
   ) external {
-    require(msg.sender == address(bridgeContract), "Only bridge allowed");
-    require(bridgeContract.messageSender() == mediatorContractOnOtherSide, "Invalid contract on other side");
+    require(msg.sender == address(bridgeContract), "StakingHomeMediator: Only bridge allowed");
+    require(
+      bridgeContract.messageSender() == mediatorContractOnOtherSide,
+      "StakingHomeMediator: Invalid contract on other side"
+    );
 
     if (_cachedBalances[__delegator].length > 0) {
       require(
         __timestamp >= _cachedBalances[__delegator][_cachedBalances[__delegator].length - 1].fromTimestamp,
-        "Timestamp should be greater than the last one"
+        "StakingHomeMediator: Timestamp should be greater than the last one"
       );
     }
 
     if (_cachedTotalSupply.length > 0) {
       require(
         __timestamp >= _cachedTotalSupply[_cachedTotalSupply.length - 1].fromTimestamp,
-        "Timestamp should be greater than the last one"
+        "StakingHomeMediator: Timestamp should be greater than the last one"
       );
     }
 
@@ -58,8 +61,11 @@ contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
   }
 
   function setLockedStake(address __delegator, uint256 __value) external {
-    require(msg.sender == address(bridgeContract), "Only bridge allowed");
-    require(bridgeContract.messageSender() == mediatorContractOnOtherSide, "Invalid contract on other side");
+    require(msg.sender == address(bridgeContract), "StakingHomeMediator: Only bridge allowed");
+    require(
+      bridgeContract.messageSender() == mediatorContractOnOtherSide,
+      "StakingHomeMediator: Invalid contract on other side"
+    );
 
     _lockedBalances[__delegator] = __value;
 

@@ -21,21 +21,21 @@ contract BasicStakingMediator is Ownable, Initializable, AMBMediator, TimestampC
   bytes32 internal _nonce;
 
   function _initialize(
-    address _bridgeContract,
-    address _mediatorContractOnOtherSide,
-    uint256 _requestGasLimit,
-    uint256 _oppositeChainId,
-    address _owner
+    address __bridgeContract,
+    address __mediatorContractOnOtherSide,
+    uint256 __requestGasLimit,
+    uint256 __oppositeChainId,
+    address __owner
   ) internal initializer {
-    _setBridgeContract(_bridgeContract);
-    _setMediatorContractOnOtherSide(_mediatorContractOnOtherSide);
-    _setRequestGasLimit(_requestGasLimit);
+    _setBridgeContract(__bridgeContract);
+    _setMediatorContractOnOtherSide(__mediatorContractOnOtherSide);
+    _setRequestGasLimit(__requestGasLimit);
 
-    oppositeChainId = _oppositeChainId;
+    oppositeChainId = __oppositeChainId;
 
     _setNonce(keccak256(abi.encodePacked(address(this))));
 
-    _transferOwnership(_owner);
+    _transferOwnership(__owner);
   }
 
   // INFO GETTERS
@@ -58,17 +58,17 @@ contract BasicStakingMediator is Ownable, Initializable, AMBMediator, TimestampC
 
   // USER INTERFACE
 
-  function _setNonce(bytes32 _hash) internal {
-    _nonce = _hash;
+  function _setNonce(bytes32 __hash) internal {
+    _nonce = __hash;
   }
 
   // GETTERS
 
-  function balanceOfAt(address _delegate, uint256 _timestamp) public view returns (uint256) {
-    return _getValueAt(_cachedBalances[_delegate], _timestamp);
+  function balanceOfAt(address __delegator, uint256 __timestamp) public view returns (uint256) {
+    return _getValueAt(_cachedBalances[__delegator], __timestamp);
   }
 
-  function totalSupplyAt(uint256 _timestamp) public view returns (uint256) {
-    return _getValueAt(_cachedTotalSupply, _timestamp);
+  function totalSupplyAt(uint256 __timestamp) public view returns (uint256) {
+    return _getValueAt(_cachedTotalSupply, __timestamp);
   }
 }

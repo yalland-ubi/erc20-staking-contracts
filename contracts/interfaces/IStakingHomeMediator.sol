@@ -20,7 +20,7 @@ interface IStakingHomeMediator {
   function setLockedStake(address __delegator, uint256 __value) external;
 
   // GETTERS
-  function balanceOfAt(address __delegate, uint256 __timestamp) external view returns (uint256);
+  function balanceOfAt(address __delegator, uint256 __timestamp) external view returns (uint256);
 
   function totalSupplyAt(uint256 __timestamp) external view returns (uint256);
 
