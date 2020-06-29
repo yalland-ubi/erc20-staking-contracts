@@ -13,8 +13,14 @@ import "./mediators/BasicStakingMediator.sol";
 import "./interfaces/IStakingHomeMediator.sol";
 
 contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
-  event SetLockedStake(address delegator, uint256 value, bytes32 messageId);
-  event SetCachedBalance(address delegator, uint256 balance, uint256 totalSupply, uint256 timestamp);
+  event SetLockedStake(bytes32 indexed messageId, address indexed delegator, uint256 value);
+  event SetCachedBalance(
+    bytes32 indexed messageId,
+    address indexed delegator,
+    uint256 balance,
+    uint256 totalSupply,
+    uint256 indexed timestamp
+  );
 
   mapping(address => uint256) internal _lockedBalances;
 
@@ -57,7 +63,7 @@ contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
     _updateValueAt(_cachedBalances[__delegator], __balance, __timestamp);
     _updateValueAt(_cachedTotalSupply, __totalSupply, __timestamp);
 
-    emit SetCachedBalance(__delegator, __balance, __totalSupply, __timestamp);
+    emit SetCachedBalance(bridgeContract.messageId(), __delegator, __balance, __totalSupply, __timestamp);
   }
 
   function setLockedStake(address __delegator, uint256 __value) external {
@@ -69,7 +75,7 @@ contract StakingHomeMediator is IStakingHomeMediator, BasicStakingMediator {
 
     _lockedBalances[__delegator] = __value;
 
-    emit SetLockedStake(__delegator, __value, bridgeContract.messageId());
+    emit SetLockedStake(bridgeContract.messageId(), __delegator, __value);
   }
 
   // GETTERS

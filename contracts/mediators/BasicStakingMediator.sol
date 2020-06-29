@@ -33,8 +33,6 @@ contract BasicStakingMediator is Ownable, Initializable, AMBMediator, TimestampC
 
     oppositeChainId = __oppositeChainId;
 
-    _setNonce(keccak256(abi.encodePacked(address(this))));
-
     _transferOwnership(__owner);
   }
 
@@ -54,12 +52,6 @@ contract BasicStakingMediator is Ownable, Initializable, AMBMediator, TimestampC
 
   function getBridgeMode() external pure returns (bytes4 _data) {
     return bytes4(keccak256(abi.encodePacked("stake-to-stake-amb")));
-  }
-
-  // USER INTERFACE
-
-  function _setNonce(bytes32 __hash) internal {
-    _nonce = __hash;
   }
 
   // GETTERS

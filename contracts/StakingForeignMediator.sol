@@ -46,6 +46,7 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
   event NewCoolDownBox(address indexed delegator, uint256 boxId, uint256 amount, uint64 canBeReleasedSince);
   event ReleaseCoolDownBox(address indexed delegator, uint256 boxId, uint256 amount, uint256 releasedAt);
   event PostLockedStake(bytes32 indexed messageId, address indexed delegator, uint256 value);
+  event PostCachedBalance(bytes32 indexed messageId, address indexed delegator, uint256 indexed at);
   event SetStakingToken(address stakingToken);
 
   struct CoolDownBox {
@@ -266,18 +267,16 @@ contract StakingForeignMediator is IStakingForeignMediator, BasicStakingMediator
     bytes4 methodSelector = IStakingHomeMediator(0).setCachedBalance.selector;
     uint256 pushAmount = balanceOfAt(__delegator, __at);
     uint256 pushTotalSupply = totalSupplyAt(__at);
-
     bytes memory data = abi.encodeWithSelector(methodSelector, __delegator, pushAmount, pushTotalSupply, __at);
 
-    bytes32 dataHash = keccak256(data);
-    _setNonce(dataHash);
-
-    bridgeContract.requireToPassMessage(mediatorContractOnOtherSide, data, requestGasLimit);
+    bytes32 messageId = bridgeContract.requireToPassMessage(mediatorContractOnOtherSide, data, requestGasLimit);
+    emit PostCachedBalance(messageId, __delegator, __at);
   }
 
   function _postLockedStake(address __delegator, uint256 __value) internal {
     bytes4 methodSelector = IStakingHomeMediator(0).setLockedStake.selector;
     bytes memory data = abi.encodeWithSelector(methodSelector, __delegator, __value);
+
     bytes32 messageId = bridgeContract.requireToPassMessage(mediatorContractOnOtherSide, data, requestGasLimit);
     emit PostLockedStake(messageId, __delegator, __value);
   }
