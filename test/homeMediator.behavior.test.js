@@ -139,7 +139,7 @@ describe('StakingHomeMediator Behaviour tests', () => {
     assert.equal(await homeMediator.balanceOfAt(bob, step2 - 1), 0);
     assert.equal(await homeMediator.totalSupplyAt(step2 - 1), ether(30));
 
-    // step3 changes to (alice=30, bob=10, charlie=0, total=50)
+    // step3 changes to (alice=30, bob=10, charlie=0, total=40)
     await increaseTime(10);
 
     await assertRevert(
