@@ -8,6 +8,7 @@
   "devDependencies": {
     "@galtproject/eslint-config-galt": "github:galtproject/eslint-config-galt#1e45e18b5e6849f6a88036a151f62d60889e9396",
     "@galtproject/solidity-test-chest": "https://github.com/galtproject/solidity-test-chest#5ebd982",
+    "@openzeppelin/contract-loader": "^0.6.1",
     "@openzeppelin/contracts": "2.5.1",
     "@openzeppelin/test-environment": "github:chebykin/openzeppelin-test-environment#2ae7a2a4b3238b7ab8009be99e833e6342944400",
     "@openzeppelin/upgrades": "^2.8.0",
@@ -16,12 +17,11 @@
     "cli-table": "^0.3.1",
     "ganache-cli": "^6.9.1",
     "ganache-core": "^2.10.2",
-    "ganache-core-coverage": "https://github.com/OpenZeppelin/ganache-core-coverage/releases/download/2.5.3-coverage/ganache-core-coverage-2.5.3.tgz",
     "lodash": "^4.17.15",
     "mocha": "^7.1.2",
     "solhint": "^3.0.0",
     "solhint-plugin-prettier": "0.0.4",
-    "solidity-coverage": "github:rotcivegaf/solidity-coverage#5875f5b7bc74d447f3312c9c0e9fc7814b482477",
+    "solidity-coverage": "^0.7.9",
     "truffle": "^5.1.24",
     "web3": "^1.2.7"
   },
@@ -37,6 +37,7 @@
   "repository": "https://github.com/yalland-ubi/erc20-staking-contracts",
   "scripts": {
     "test": "mocha --exit --recursive test --timeout 10000",
+    "ttest": "truffle test --network test",
     "compile": "truffle compile",
     "deploy": "truffle migrate --network local",
     "coverage": "SOLIDITY_COVERAGE=yes scripts/coverage.sh",

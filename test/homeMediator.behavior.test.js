@@ -1,4 +1,6 @@
-const { accounts, contract, web3, defaultSender } = require('@openzeppelin/test-environment');
+const { accounts, defaultSender } = require('@openzeppelin/test-environment');
+// eslint-disable-next-line import/order
+const { contract } = require('./twrapper');
 const { assert } = require('chai');
 
 const AMBMock = contract.fromArtifact('AMBMock');
