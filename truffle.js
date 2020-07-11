@@ -3,7 +3,7 @@ const config = {
     local: {
       host: '127.0.0.1',
       port: 8545,
-      gasLimit: 9700000,
+      gasLimit: 9600000,
       network_id: '*',
     },
     soliditycoverage: {
@@ -37,6 +37,11 @@ const config = {
   },
   mocha: {
     timeout: 10000,
+    reporter: 'eth-gas-reporter',
+    reporterOptions: {
+      currency: 'USD',
+      url: 'http://localhost:56990',
+    },
   },
   plugins: ['solidity-coverage'],
 };
