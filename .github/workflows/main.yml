@@ -23,7 +23,7 @@ jobs:
     - name: Run tests
       run: |
         npm install
-        make lint && make compile && npm run test
+        make lint && make compile && npm run ttest
   coverage:
     runs-on: ubuntu-18.04
     steps:
