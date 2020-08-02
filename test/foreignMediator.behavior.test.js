@@ -163,12 +163,12 @@ describe('StakingForeignMediator Behaviour tests', () => {
     // Step #1. Lock...
     await assertRevert(
       foreignMediator.lock(ether(31), { from: alice }),
-      ' StakingForeignMediator lock amount exceeds the balance'
+      ' StakingForeignMediator: Lock amount exceeds the balance'
     );
     await foreignMediator.lock(ether(30), { from: alice });
     await assertRevert(
       foreignMediator.lock(ether(1), { from: alice }),
-      ' StakingForeignMediator lock amount exceeds the balance'
+      ' StakingForeignMediator: Lock amount exceeds the balance'
     );
     await foreignMediator.lock(ether(10), { from: bob });
     await foreignMediator.lock(ether(10), { from: charlie });
@@ -289,7 +289,7 @@ describe('StakingForeignMediator Behaviour tests', () => {
 
     await assertRevert(
       foreignMediator.unstake(ether(21), { from: bob }),
-      'StakingForeignMediator: unstake amount exceeds the unlocked balance'
+      'StakingForeignMediator: Unstake amount exceeds the unlocked balance'
     );
     res = await foreignMediator.unstake(ether(10), { from: bob });
     const step3 = await getResTimestamp(res);
@@ -322,28 +322,28 @@ describe('StakingForeignMediator Behaviour tests', () => {
 
     await assertRevert(
       foreignMediator.releaseCoolDownBox(1, { from: alice }),
-      'StakingForeignMediator: cannot be released yet'
+      'StakingForeignMediator: Cannot be released yet'
     );
 
     await increaseTime(coolDownPeriodLength - 100);
 
     await assertRevert(
       foreignMediator.releaseCoolDownBox(1, { from: alice }),
-      'StakingForeignMediator: cannot be released yet'
+      'StakingForeignMediator: Cannot be released yet'
     );
 
     await increaseTime(150);
 
     await assertRevert(
       foreignMediator.releaseCoolDownBox(1, { from: bob }),
-      ' StakingForeignMediator: only box holder allowed'
+      ' StakingForeignMediator: Only box holder allowed'
     );
 
     foreignMediator.releaseCoolDownBox(1, { from: alice });
 
     await assertRevert(
       foreignMediator.releaseCoolDownBox(1, { from: alice }),
-      'StakingForeignMediator: the box has been already released'
+      'StakingForeignMediator: The box has been already released'
     );
   });
 

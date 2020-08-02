@@ -25,37 +25,37 @@ contract AMBMediator is Ownable {
 
   // OWNER INTERFACE
 
-  function setBridgeContract(address _bridgeContract) external onlyOwner {
-    _setBridgeContract(_bridgeContract);
+  function setBridgeContract(address __bridgeContract) external onlyOwner {
+    _setBridgeContract(__bridgeContract);
   }
 
-  function setMediatorContractOnOtherSide(address _mediatorContract) external onlyOwner {
-    _setMediatorContractOnOtherSide(_mediatorContract);
+  function setMediatorContractOnOtherSide(address __mediatorContract) external onlyOwner {
+    _setMediatorContractOnOtherSide(__mediatorContract);
   }
 
-  function setRequestGasLimit(uint256 _requestGasLimit) external onlyOwner {
-    _setRequestGasLimit(_requestGasLimit);
+  function setRequestGasLimit(uint256 __requestGasLimit) external onlyOwner {
+    _setRequestGasLimit(__requestGasLimit);
   }
 
   // INTERNAL
 
-  function _setBridgeContract(address _bridgeContract) internal {
-    require(Address.isContract(_bridgeContract), "Address should be a contract");
-    bridgeContract = IAMB(_bridgeContract);
+  function _setBridgeContract(address __bridgeContract) internal {
+    require(Address.isContract(__bridgeContract), "AMBMediator: Address should be a contract");
+    bridgeContract = IAMB(__bridgeContract);
 
-    emit SetBridgeContract(_bridgeContract);
+    emit SetBridgeContract(__bridgeContract);
   }
 
-  function _setMediatorContractOnOtherSide(address _mediatorContract) internal {
-    mediatorContractOnOtherSide = _mediatorContract;
+  function _setMediatorContractOnOtherSide(address __mediatorContract) internal {
+    mediatorContractOnOtherSide = __mediatorContract;
 
-    emit SetMediatorContractOnOtherSide(_mediatorContract);
+    emit SetMediatorContractOnOtherSide(__mediatorContract);
   }
 
-  function _setRequestGasLimit(uint256 _requestGasLimit) internal {
-    require(_requestGasLimit <= bridgeContract.maxGasPerTx(), "Gas value exceeds bridge limit");
-    requestGasLimit = _requestGasLimit;
+  function _setRequestGasLimit(uint256 __requestGasLimit) internal {
+    require(__requestGasLimit <= bridgeContract.maxGasPerTx(), "AMBMediator: Gas value exceeds bridge limit");
+    requestGasLimit = __requestGasLimit;
 
-    emit SetRequestGasLimit(_requestGasLimit);
+    emit SetRequestGasLimit(__requestGasLimit);
   }
 }

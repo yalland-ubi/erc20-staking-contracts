@@ -146,7 +146,7 @@ describe('StakingHomeMediator Behaviour tests', () => {
 
     await assertRevert(
       foreignMediator.unstake(ether(21), { from: bob }),
-      'StakingForeignMediator: unstake amount exceeds the unlocked balance'
+      'StakingForeignMediator: Unstake amount exceeds the unlocked balance'
     );
     res = await foreignMediator.unstake(ether(10), { from: bob });
     const step3 = await getResTimestamp(res);
@@ -221,13 +221,13 @@ describe('StakingHomeMediator Behaviour tests', () => {
 
     // attempt to fix tx will fail
     await increaseTime(10);
-    await foreignMediator.pushCachedBalance(alice, step2BalanceSlot, step2TotalSupplySlot, step2, {
+    await foreignMediator.pushCachedBalance(alice, step2BalanceSlot, step2TotalSupplySlot, {
       from: charlie,
     });
     assert.equal(await bridge.messageCallStatus(keccak256('stub')), false);
     assert.equal(
       callRevertReason(await bridge.failedReason(keccak256('stub'))),
-      'Timestamp should be greater than the last one'
+      'StakingHomeMediator: Timestamp should be greater than the last one'
     );
   });
 });
